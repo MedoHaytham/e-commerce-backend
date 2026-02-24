@@ -24,6 +24,7 @@ const getProductById = asyncWrapper(
       return next(error);
     }
     return res.json({status: httpStatusText.SUCCESS, data: {
+      id: product._id,
       title: product.title,
       description: product.description,
       category: product.category.slug,
