@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import usersRouter from "./routes/usersRoutes.js";
 import categoriesRouter from "./routes/categoriesRoutes.js";
 import productsRouter from "./routes/productsRoutes.js";
-import { httpStatusText } from "../projects/courses app/utils/httpStatusText.js";
+import { httpStatusText } from "./utils/httpStatusText.js";
 
 dotenv.config();
 

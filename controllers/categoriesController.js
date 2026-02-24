@@ -1,7 +1,7 @@
-import { asyncWrapper } from "../../projects/courses app/middleware/asyncWrapper.js";
+import { asyncWrapper } from "../middleware/asyncWrapper.js";
 import Category from "../models/categories.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
-import AppError from "../../projects/courses app/utils/appError.js";
+import AppError from "../utils/appError.js";
 import Product from "../models/products.js";
 
 const getAllCategories = asyncWrapper(

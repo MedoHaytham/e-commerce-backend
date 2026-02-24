@@ -1,9 +1,9 @@
-import { asyncWrapper } from "../../projects/courses app/middleware/asyncWrapper.js";
+import { asyncWrapper } from "../middleware/asyncWrapper.js";
 import User from "../models/users.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
 import bcrypt from "bcryptjs";
 import { generateJWT } from "../utils/generateJWT.js";
-import AppError from "../../projects/courses app/utils/appError.js";
+import AppError from "../utils/appError.js";
 
 const getAllUsers = asyncWrapper(
   async (req, res, next) => {

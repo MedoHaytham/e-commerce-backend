@@ -1,5 +1,5 @@
-import AppError from "../../projects/courses app/utils/appError.js";
-import { httpStatusText } from "../../projects/courses app/utils/httpStatusText.js";
+import AppError from "../utils/appError.js";
+import { httpStatusText } from "../utils/httpStatusText.js";
 
 const userValidate = (schemas) => {
   return (req, res, next) => {
