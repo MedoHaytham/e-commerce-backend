@@ -21,6 +21,15 @@ const userSchema = new mongoose.Schema({
     enum: [USER_ROLES.ADMIN, USER_ROLES.USER], 
     default: USER_ROLES.USER
   },
+  favoriteProducts: [
+    {type: mongoose.Schema.Types.ObjectId, ref: 'Product'}
+  ],
+  inCartProducts: [
+    {
+      product: {type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true},
+      quantity: {type: Number, default: 1, min: 1}
+    }
+  ],
 });
 
 const User = mongoose.model('User', userSchema);
