@@ -31,7 +31,7 @@ app.all(/(.*)/,(req, res, next) => {
 
 // global middleware for error handling
 app.use((err, req, res, next) => {
-  res.status(err.code || 500).json({status: err.statusText || httpStatusText.ERROR, message: err.message, data: err.data});
+  res.status(err.statusCode || 500).json({status: err.statusText || httpStatusText.ERROR, message: err.message, data: err.data});
 });
 
 app.listen(process.env.PORT, () => {
