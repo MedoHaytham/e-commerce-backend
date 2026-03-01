@@ -5,6 +5,10 @@ import bcrypt from "bcryptjs";
 import { generateJWT } from "../utils/generateJWT.js";
 import AppError from "../utils/appError.js";
 import Product from "../models/products.js";
+import dotenv from "dotenv";
+import JWT from "jsonwebtoken";
+
+dotenv.config();
 
 const getAllUsers = asyncWrapper(
   async (req, res, next) => {
@@ -28,69 +32,7 @@ const getUserById = asyncWrapper(
   }
 );
 
-const registerUser = asyncWrapper(
-  async (req, res, next) => {
-    const { username, email, password } = req.body;
-    const emailNormalized = email.toLowerCase().trim();
-    const oldUser = await User.findOne({email: emailNormalized});
-    if (oldUser) {
-      const error = new AppError();
-      error.create('user already exists', 409, httpStatusText.FAIL);
-      return next(error);
-    }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = new User({
-      username, 
-      email: emailNormalized, 
-      password: hashedPassword,
-    });
-    
-    await newUser.save();
-
-    const token = generateJWT({id: newUser._id, role: newUser.role});
-
-    return res.status(201).json({status: httpStatusText.SUCCESS, data: {
-      token,
-      user: {
-        id: newUser._id,
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role,
-      }
-    }});
-  }
-);
-
-const loginUser = asyncWrapper(
-  async (req, res, next) => {
-    const {email, password} = req.body;
-    const emailNormalized = email.toLowerCase().trim();
-    const user = await User.findOne({email: emailNormalized}).select('+password');
-    if (!user) {
-      const error = new AppError();
-      error.create('Invalid email or password', 401, httpStatusText.FAIL);
-      return next(error);
-    }
-    const matchedPassword = await bcrypt.compare(password, user.password);
-    if (!matchedPassword) {
-      const error = new AppError();
-      error.create('Invalid email or password', 401, httpStatusText.FAIL);
-      return next(error);
-    }
-    const token = generateJWT({id: user._id, role: user.role});
-    return res.status(200).json({status: httpStatusText.SUCCESS, data: {
-      token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      }
-    }});
-  }
-);
 
 // const updateUser = asyncWrapper(
 //   async (req, res, next) => {
@@ -295,8 +237,6 @@ const deleteUser = asyncWrapper(
 
 export {
   getAllUsers, 
-  registerUser, 
-  loginUser, 
   deleteUser, 
   getUserById, 
   toggleFavorite, 
@@ -305,5 +245,5 @@ export {
   removeFromCart,
   getCartProducts,
   increaseQuantity,
-  decreaseQuantity
+  decreaseQuantity,
 }

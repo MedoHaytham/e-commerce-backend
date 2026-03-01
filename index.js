@@ -5,7 +5,9 @@ import mongoose from "mongoose";
 import usersRouter from "./routes/usersRoutes.js";
 import categoriesRouter from "./routes/categoriesRoutes.js";
 import productsRouter from "./routes/productsRoutes.js";
+import authRouter from "./routes/authRoutes.js";
 import { httpStatusText } from "./utils/httpStatusText.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -20,6 +22,8 @@ mongoose.connect(url).then(()=>{
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
+app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/products', productsRouter);

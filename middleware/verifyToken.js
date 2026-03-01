@@ -20,7 +20,7 @@ const verifyToken = (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
-    const currentUser = JWT.verify(token, process.env.SECRET_KEY);
+    const currentUser = JWT.verify(token, process.env.ACCESS_TOKEN_SECRET_KEY);
     req.currentUser = currentUser;
     next();
   } catch (err) {
