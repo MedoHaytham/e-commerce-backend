@@ -13,6 +13,12 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://medohaytham.github.io/e-commerce"
+];
+
 const url = process.env.MONGO_URL;
 mongoose.connect(url).then(()=>{
   console.log('connected to mongodb');
@@ -20,9 +26,17 @@ mongoose.connect(url).then(()=>{
   console.log(err);
 });
 
-app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors({
+  origin: function (origin, cb) {
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+
+    return cb(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+}));
 app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/categories', categoriesRouter);
