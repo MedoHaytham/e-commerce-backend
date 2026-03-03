@@ -12,7 +12,7 @@ dotenv.config();
 
 const registerUser = asyncWrapper(
   async (req, res, next) => {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, phone, birthDate, gender, country } = req.body;
     const emailNormalized = email.toLowerCase().trim();
     const oldUser = await User.findOne({email: emailNormalized});
     if (oldUser) {
@@ -26,6 +26,10 @@ const registerUser = asyncWrapper(
     const newUser = new User({
       firstName,
       lastName,
+      phone,
+      birthDate,
+      gender,
+      country,
       email: emailNormalized, 
       password: hashedPassword,
     });
@@ -48,6 +52,10 @@ const registerUser = asyncWrapper(
         id: newUser._id,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
+        phone: newUser.phone,
+        birthDate: newUser.birthDate,
+        gender: newUser.gender,
+        country: newUser.country,
         email: newUser.email,
         role: newUser.role,
       }
@@ -87,6 +95,10 @@ const loginUser = asyncWrapper(
         id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
+        phone: user.phone,
+        birthDate: user.birthDate,
+        gender: user.gender,
+        country: user.country,
         email: user.email,
         role: user.role,
       }

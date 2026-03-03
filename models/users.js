@@ -16,6 +16,34 @@ const userSchema = new mongoose.Schema({
       message: 'field must be a valid email address'
     }
   },
+  phone: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    validate: {
+      validator: validator.isMobilePhone,
+      message: 'field must be a valid phone number'
+    }
+  },
+  birthDate: {
+    type: Date,
+    required: true,
+    validate: {
+      validator: validator.isDate,
+      message: 'field must be a valid date'
+    }
+  },
+  gender: {
+    type: String,
+    enum: ['male', 'female'],
+    required: true
+  },
+  country: {
+    type: String,
+    required: true,
+    enum: ['egypt', 'saudi arabia', 'emirates', 'qatar', 'american', 'british', 'yemen', 'syria', 'lebanon', 'jordan', 'palestine', 'iraq', 'morocco', 'algeria', 'tunisia', 'libya', 'sudan', 'somalia', 'djibouti', 'comoros']
+  },
   password: {type: String, required: true, select: false},
   role: {
     type: String, 
