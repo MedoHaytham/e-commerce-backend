@@ -12,7 +12,7 @@ dotenv.config();
 
 const registerUser = asyncWrapper(
   async (req, res, next) => {
-    const { username, email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
     const emailNormalized = email.toLowerCase().trim();
     const oldUser = await User.findOne({email: emailNormalized});
     if (oldUser) {
@@ -24,7 +24,8 @@ const registerUser = asyncWrapper(
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
-      username, 
+      firstName,
+      lastName,
       email: emailNormalized, 
       password: hashedPassword,
     });
@@ -45,7 +46,8 @@ const registerUser = asyncWrapper(
       accessToken,
       user: {
         id: newUser._id,
-        username: newUser.username,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
         email: newUser.email,
         role: newUser.role,
       }
@@ -83,7 +85,8 @@ const loginUser = asyncWrapper(
       accessToken,
       user: {
         id: user._id,
-        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role,
       }

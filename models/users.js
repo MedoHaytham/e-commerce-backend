@@ -3,7 +3,8 @@ import { USER_ROLES } from "../utils/usersRoles.js";
 import validator from "validator";
 
 const userSchema = new mongoose.Schema({
-  username: {type: String, required: true},
+  firstName: {type: String, required: true},
+  lastName: {type: String, required: true},
   email: {
     type: String, 
     required: true, 
