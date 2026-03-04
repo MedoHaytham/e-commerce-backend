@@ -60,6 +60,6 @@ router.route('/favorites/:productId')
 router.route('/:userId')
   .get(allowedToOrOwner(USER_ROLES.MANAGER), getUserById)
   .patch(allowedTo(USER_ROLES.MANAGER), updateUserByAdmin)
-  .delete(allowedTo(USER_ROLES.MANAGER), deleteUser);
+  .delete(allowedToOrOwner(USER_ROLES.MANAGER), deleteUser);
 
 export default router;
