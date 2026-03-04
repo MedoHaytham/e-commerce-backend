@@ -329,9 +329,22 @@ const getFavoriteProducts = asyncWrapper(
   }
 )
 
-const deleteUser = asyncWrapper(
+const deleteUserByAdmin = asyncWrapper(
   async (req, res, next) => {
     const user = await User.findByIdAndDelete(req.params.userId);
+    if (!user) {
+      const error = new AppError();
+      error.create('user not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    return res.json({status: httpStatusText.SUCCESS, data: null});
+  }
+);
+
+const deleteUser = asyncWrapper(
+  async (req, res, next) => {
+    const userId = req.currentUser.id;
+    const user = await User.findByIdAndDelete(userId);
     if (!user) {
       const error = new AppError();
       error.create('user not found', 404, httpStatusText.FAIL);
@@ -355,5 +368,6 @@ export {
   updateProfile,
   updatePassword,
   updateUserByAdmin,
-  getProfile
+  getProfile,
+  deleteUserByAdmin
 }

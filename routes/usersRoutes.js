@@ -16,7 +16,8 @@ import {
   updateProfile,
   updatePassword,
   updateUserByAdmin,
-  getProfile
+  getProfile,
+  deleteUserByAdmin
 } from "../controllers/usersController.js";
 import { USER_ROLES } from "../utils/usersRoles.js";
 
@@ -30,7 +31,8 @@ router.route('/')
 // ================= PROFILE =================
 router.route('/me')
   .get(getProfile)
-  .patch(updateProfile);
+  .patch(updateProfile)
+  .delete(deleteUser);
 
 router.route('/me/password')
   .patch(updatePassword);
@@ -60,6 +62,6 @@ router.route('/favorites/:productId')
 router.route('/:userId')
   .get(allowedToOrOwner(USER_ROLES.MANAGER), getUserById)
   .patch(allowedTo(USER_ROLES.MANAGER), updateUserByAdmin)
-  .delete(allowedToOrOwner(USER_ROLES.MANAGER), deleteUser);
+  .delete(allowedTo(USER_ROLES.MANAGER), deleteUserByAdmin);
 
 export default router;
