@@ -31,8 +31,6 @@ const getUserById = asyncWrapper(
   }
 );
 
-
-
 const updateProfile = asyncWrapper(
   async (req, res, next) => {
     const userId = req.currentUser.id;
@@ -53,7 +51,7 @@ const updateProfile = asyncWrapper(
     const user = await User.findByIdAndUpdate(userId, updates, {
       new: true,
       runValidators: true,
-    }).select("-password -__v");
+    }).select('-password -__v');
 
     if (!user) {
       const error = new AppError();
@@ -76,7 +74,7 @@ const updatePassword = asyncWrapper(
       return next(error);
     }
 
-    const user = await User.findById(userId).select("+password");
+    const user = await User.findById(userId).select('+password');
     if (!user) {
       const error = new AppError();
       error.create("user not found", 404, httpStatusText.FAIL);
@@ -97,8 +95,7 @@ const updatePassword = asyncWrapper(
       return next(error);
     }
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
     return res.json({ status: httpStatusText.SUCCESS, message: "Password updated successfully" });
@@ -107,7 +104,7 @@ const updatePassword = asyncWrapper(
 
 const updateUserByAdmin = asyncWrapper(
   async (req, res, next) => {
-    const userIdToUpdate = req.params.userId;
+    const userId = req.params.userId;
 
     const allowedFields = ["firstName", "lastName", "email", "role", "phone", "birthDate", "gender", "country"];
 
@@ -128,10 +125,10 @@ const updateUserByAdmin = asyncWrapper(
       return next(error);
     }
 
-    const user = await User.findByIdAndUpdate(userIdToUpdate, updates, {
+    const user = await User.findByIdAndUpdate(userId, updates, {
       new: true,
       runValidators: true,
-    }).select("-password -__v");
+    }).select('-password -__v');
 
     if (!user) {
       const error = new AppError();
