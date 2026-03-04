@@ -2,7 +2,6 @@ import { asyncWrapper } from "../middleware/asyncWrapper.js";
 import User from "../models/users.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
 import bcrypt from "bcryptjs";
-import { generateJWT } from "../utils/generateJWT.js";
 import AppError from "../utils/appError.js";
 import Product from "../models/products.js";
 import dotenv from "dotenv";
@@ -22,6 +21,19 @@ const getAllUsers = asyncWrapper(
 const getUserById = asyncWrapper(
   async (req, res, next) => {
     const user = await User.findById(req.params.userId, {__v: 0, password: 0});
+    if (!user) {
+      const error = new AppError();
+      error.create('user not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    return res.json({status: httpStatusText.SUCCESS, data: user});
+  }
+);
+
+const getProfile = asyncWrapper(
+  async (req, res, next) => {
+    const userId = req.currentUser.id;
+    const user = await User.findById(userId, {__v: 0, password: 0});
     if (!user) {
       const error = new AppError();
       error.create('user not found', 404, httpStatusText.FAIL);
@@ -343,4 +355,5 @@ export {
   updateProfile,
   updatePassword,
   updateUserByAdmin,
+  getProfile
 }

@@ -16,6 +16,7 @@ import {
   updateProfile,
   updatePassword,
   updateUserByAdmin,
+  getProfile
 } from "../controllers/usersController.js";
 import { USER_ROLES } from "../utils/usersRoles.js";
 
@@ -28,6 +29,7 @@ router.route('/')
 
 // ================= PROFILE =================
 router.route('/me')
+  .get(getProfile)
   .patch(updateProfile);
 
 router.route('/me/password')
