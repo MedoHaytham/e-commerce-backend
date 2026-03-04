@@ -6,7 +6,6 @@ import { generateJWT } from "../utils/generateJWT.js";
 import AppError from "../utils/appError.js";
 import Product from "../models/products.js";
 import dotenv from "dotenv";
-import JWT from "jsonwebtoken";
 
 dotenv.config();
 
@@ -34,17 +33,115 @@ const getUserById = asyncWrapper(
 
 
 
-// const updateUser = asyncWrapper(
-//   async (req, res, next) => {
-//     const user = await User.findByIdAndUpdate(req.params.userId, req.body, {new: true});
-//     if (!user) {
-//       const error = new AppError();
-//       error.create('user not found', 404, httpStatusText.FAIL);
-//       return next(error);
-//     }
-//     return res.json({status: httpStatusText.SUCCESS, data: user});
-//   }
-// );
+const updateProfile = asyncWrapper(
+  async (req, res, next) => {
+    const userId = req.currentUser.id;
+
+    const allowedFields = ["email", "phone", "birthDate", "gender", "country", "firstName", "lastName"];
+
+    const updates = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) updates[key] = req.body[key];
+    }
+
+    if (Object.keys(updates).length === 0) {
+      const error = new AppError();
+      error.create("No valid fields to update", 400, httpStatusText.FAIL);
+      return next(error);
+    }
+
+    const user = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+      runValidators: true,
+    }).select("-password -__v");
+
+    if (!user) {
+      const error = new AppError();
+      error.create("user not found", 404, httpStatusText.FAIL);
+      return next(error);
+    }
+
+    return res.json({ status: httpStatusText.SUCCESS, data: user });
+  }
+);
+
+const updatePassword = asyncWrapper(
+  async (req, res, next) => {
+    const userId = req.currentUser.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      const error = new AppError();
+      error.create("currentPassword and newPassword are required", 400, httpStatusText.FAIL);
+      return next(error);
+    }
+
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      const error = new AppError();
+      error.create("user not found", 404, httpStatusText.FAIL);
+      return next(error);
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      const error = new AppError();
+      error.create("Current password is incorrect", 400, httpStatusText.FAIL);
+      return next(error);
+    }
+
+    const sameAsOld = await bcrypt.compare(newPassword, user.password);
+    if (sameAsOld) {
+      const error = new AppError();
+      error.create("New password must be different from old password", 400, httpStatusText.FAIL);
+      return next(error);
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    return res.json({ status: httpStatusText.SUCCESS, message: "Password updated successfully" });
+  }
+);
+
+const updateUserByAdmin = asyncWrapper(
+  async (req, res, next) => {
+    const userIdToUpdate = req.params.userId;
+
+    const allowedFields = ["firstName", "lastName", "email", "role", "phone", "birthDate", "gender", "country"];
+
+    const updates = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) updates[key] = req.body[key];
+    }
+
+    if (Object.keys(updates).length === 0) {
+      const error = new AppError();
+      error.create("No valid fields to update", 400, httpStatusText.FAIL);
+      return next(error);
+    }
+
+    if (req.body.password !== undefined) {
+      const error = new AppError();
+      error.create("Use password endpoint to change password", 400, httpStatusText.FAIL);
+      return next(error);
+    }
+
+    const user = await User.findByIdAndUpdate(userIdToUpdate, updates, {
+      new: true,
+      runValidators: true,
+    }).select("-password -__v");
+
+    if (!user) {
+      const error = new AppError();
+      error.create("user not found", 404, httpStatusText.FAIL);
+      return next(error);
+    }
+
+    return res.json({ status: httpStatusText.SUCCESS, data: user });
+  }
+);
 
 const addToCart = asyncWrapper(
   async (req, res, next) => {
@@ -246,4 +343,7 @@ export {
   getCartProducts,
   increaseQuantity,
   decreaseQuantity,
+  updateProfile,
+  updatePassword,
+  updateUserByAdmin,
 }
