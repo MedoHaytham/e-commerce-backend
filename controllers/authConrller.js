@@ -4,7 +4,6 @@ import { httpStatusText } from "../utils/httpStatusText.js";
 import bcrypt from "bcryptjs";
 import { generateJWT } from "../utils/generateJWT.js";
 import AppError from "../utils/appError.js";
-import Product from "../models/products.js";
 import dotenv from "dotenv";
 import JWT from "jsonwebtoken";
 
