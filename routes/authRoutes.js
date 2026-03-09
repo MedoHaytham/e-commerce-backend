@@ -1,5 +1,4 @@
 import express from "express";
-import userValidate from "../validators/userValidate.js";
 import {
   registerUser, 
   loginUser, 
@@ -8,15 +7,16 @@ import {
 } from "../controllers/authConrller.js";
 import { registerSchema } from "../schemas/registerSchema.js";
 import { loginSchema } from "../schemas/loginSchema.js";
+import validate from "../validators/validate.js";
 
 
 const router = express.Router();
 
 router.route('/login')
-  .post(userValidate(loginSchema), loginUser);
+  .post(validate(loginSchema, "Invalid login data"), loginUser);
 
 router.route('/register')
-  .post(userValidate(registerSchema), registerUser);
+  .post(validate(registerSchema, "Invalid register data"), registerUser);
 
 
 router.route('/refresh')

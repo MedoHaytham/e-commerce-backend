@@ -1,16 +1,16 @@
 import express from "express";
 import { getAllProducts, getProductById, addProduct, deleteProduct, getProductsByCategory, searchProducts } from "../controllers/productsController.js";
-import productValidate from "../validators/productValidate.js";
 import { productsSchema } from "../schemas/productsSchema.js";
 import verifyToken from "../middleware/verifyToken.js";
 import { USER_ROLES } from "../utils/usersRoles.js";
 import allowedTo from "../middleware/allowedTo.js";
+import validate from "../validators/validate.js";
 
 const router = express.Router();
 
 router.route("/")
   .get(getAllProducts)
-  .post(productValidate(productsSchema), verifyToken, allowedTo(USER_ROLES.ADMIN, USER_ROLES.MANAGER), addProduct);
+  .post(validate(productsSchema, "Invalid product data"), verifyToken, allowedTo(USER_ROLES.ADMIN, USER_ROLES.MANAGER), addProduct);
   
 router.route("/search")
   .get(searchProducts);

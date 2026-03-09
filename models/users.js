@@ -2,6 +2,24 @@ import mongoose from "mongoose";
 import { USER_ROLES } from "../utils/usersRoles.js";
 import validator from "validator";
 
+const addressSchema = new mongoose.Schema({
+  title: {type: String, required: true},
+  firstName: {type: String, required: true},
+  lastName: {type: String, required: true},
+  address: {type: String, required: true},
+  city: {type: String, required: true},
+  phone: {
+    type: String, 
+    required: true,
+    validate: {
+      validator: validator.isMobilePhone,
+      message: 'field must be a valid phone number'
+    }
+  },
+  isDefault: {type: Boolean, default: false}
+},{ _id: true});
+
+
 const userSchema = new mongoose.Schema({
   firstName: {type: String, required: true},
   lastName: {type: String, required: true},
@@ -59,7 +77,8 @@ const userSchema = new mongoose.Schema({
       quantity: {type: Number, default: 1, min: 1}
     }
   ],
-});
+  addresses: [addressSchema]
+}, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
 

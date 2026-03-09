@@ -17,9 +17,16 @@ import {
   updatePassword,
   updateUserByAdmin,
   getProfile,
-  deleteUserByAdmin
+  deleteUserByAdmin,
+  getAddresses,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  setDefaultAddress
 } from "../controllers/usersController.js";
 import { USER_ROLES } from "../utils/usersRoles.js";
+import validate from "../validators/validate.js";
+import { addressSchema } from "../schemas/addressSchema.js";
 
 const router = express.Router();
 
@@ -57,6 +64,18 @@ router.route('/favorites')
 
 router.route('/favorites/:productId')
   .post(toggleFavorite)
+
+// ================= ADDRESSES =================
+router.route('/me/addresses')
+  .get(getAddresses)
+  .post(validate(addressSchema, "Invalid address data"),addAddress);
+
+router.route('/me/addresses/:addressId')
+  .patch(updateAddress)
+  .delete(deleteAddress);
+
+router.route('/me/addresses/:addressId/default')
+  .patch(setDefaultAddress);
 
 // ================= ADMIN / USER =================
 router.route('/:userId')

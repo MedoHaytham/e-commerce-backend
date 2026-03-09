@@ -329,6 +329,106 @@ const getFavoriteProducts = asyncWrapper(
   }
 )
 
+const getAddresses = asyncWrapper(
+  async (req, res, next) => {
+    const userId = req.currentUser.id;
+    const user = await User.findById(userId).lean();
+    if (!user) {
+      const error = new AppError();
+      error.create('user not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    return res.json({status: httpStatusText.SUCCESS, data: {addresses: user.addresses}});
+  }
+)
+
+const addAddress = asyncWrapper(
+  async (req, res, next) => {
+    const userId = req.currentUser.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      const error = new AppError();
+      error.create('user not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    user.addresses.push(req.body);
+    await user.save();
+    const updatedUser = await User.findById(userId).lean();
+    return res.json({status: httpStatusText.SUCCESS, data: {addresses: updatedUser.addresses}});
+  }
+)
+
+const updateAddress = asyncWrapper(
+  async (req, res, next) => {
+    const userId = req.currentUser.id;
+    const { addressId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      const error = new AppError();
+      error.create('user not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    const address = user.addresses.id(addressId);
+    if (!address) {
+      const error = new AppError();
+      error.create('address not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    address.set(req.body);
+    await user.save();
+    const updatedUser = await User.findById(userId).lean();
+    return res.json({status: httpStatusText.SUCCESS, data: {addresses: updatedUser.addresses}});
+  }
+)
+
+const deleteAddress = asyncWrapper(
+  async (req, res, next) => {
+    const userId = req.currentUser.id;
+    const { addressId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      const error = new AppError();
+      error.create('user not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    const address = user.addresses.id(addressId);
+    if (!address) {
+      const error = new AppError();
+      error.create('address not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    user.addresses.pull(address._id);
+    await user.save();
+    
+    return res.json({status: httpStatusText.SUCCESS, data: null});
+  }
+)
+
+const setDefaultAddress = asyncWrapper(
+  async (req, res, next) => {
+    const userId = req.currentUser.id;
+    const { addressId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      const error = new AppError();
+      error.create('user not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    const address = user.addresses.id(addressId);
+    if (!address) {
+      const error = new AppError();
+      error.create('address not found', 404, httpStatusText.FAIL);
+      return next(error);
+    }
+    user.addresses.forEach((addr) => {
+      addr.isDefault = false;
+    });
+    address.isDefault = true;
+    await user.save();
+    return res.json({status: httpStatusText.SUCCESS, data: 'address set as default'});
+  }
+)
+
 const deleteUserByAdmin = asyncWrapper(
   async (req, res, next) => {
     const user = await User.findByIdAndDelete(req.params.userId);
@@ -369,5 +469,10 @@ export {
   updatePassword,
   updateUserByAdmin,
   getProfile,
-  deleteUserByAdmin
+  deleteUserByAdmin,
+  getAddresses,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  setDefaultAddress
 }
