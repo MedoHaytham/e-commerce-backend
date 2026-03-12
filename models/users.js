@@ -3,17 +3,26 @@ import { USER_ROLES } from "../utils/usersRoles.js";
 import validator from "validator";
 
 const addressSchema = new mongoose.Schema({
-  title: {type: String, required: true},
-  firstName: {type: String, required: true},
-  lastName: {type: String, required: true},
-  address: {type: String, required: true},
-  city: {type: String, required: true},
-  phone: {
-    type: String, 
+  title: {type: String, required: true, trim: true},
+  firstName: {type: String, required: true, trim: true},
+  lastName: {type: String, required: true, trim: true},
+  address: {type: String, required: true, trim: true},
+  city: {type: String, required: true, trim: true},
+  country: {
+    type: String,
     required: true,
+    default: "egypt",
+    trim: true
+  },  
+  phone: {
+    type: String,
+    required: true,
+    trim: true,
     validate: {
-      validator: validator.isMobilePhone,
-      message: 'field must be a valid phone number'
+      validator: function(value) {
+        return validator.isMobilePhone(value, "any");
+      },
+      message: "field must be a valid phone number"
     }
   },
   isDefault: {type: Boolean, default: false}
@@ -21,17 +30,19 @@ const addressSchema = new mongoose.Schema({
 
 
 const userSchema = new mongoose.Schema({
-  firstName: {type: String, required: true},
-  lastName: {type: String, required: true},
+  firstName: {type: String, required: true, trim: true},
+  lastName: {type: String, required: true, trim: true},
   email: {
-    type: String, 
-    required: true, 
-    unique: true, 
-    lowercase: true, 
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
     trim: true,
     validate: {
-      validator: validator.isEmail,
-      message: 'field must be a valid email address'
+      validator: function(value) {
+        return validator.isEmail(value);
+      },
+      message: "field must be a valid email address"
     }
   },
   phone: {
@@ -40,16 +51,20 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     validate: {
-      validator: validator.isMobilePhone,
-      message: 'field must be a valid phone number'
+      validator: function(value) {
+        return validator.isMobilePhone(value, "any");
+      },
+      message: "field must be a valid phone number"
     }
   },
   birthDate: {
     type: Date,
     required: true,
     validate: {
-      validator: validator.isDate,
-      message: 'field must be a valid date'
+      validator: function(value) {
+        return value instanceof Date && !isNaN(value) && value < new Date();
+      },
+      message: "birthDate must be a valid past date"
     }
   },
   gender: {
@@ -60,7 +75,29 @@ const userSchema = new mongoose.Schema({
   country: {
     type: String,
     required: true,
-    enum: ['egypt', 'saudi arabia', 'uae', 'qatar', 'american', 'british', 'yemen', 'syria', 'lebanon', 'jordan', 'palestine', 'iraq', 'morocco', 'algeria', 'tunisia', 'libya', 'sudan', 'somalia', 'djibouti', 'comoros']
+    enum: [
+      'egypt', 
+      'saudi arabia', 
+      'uae', 
+      'qatar', 
+      'american', 
+      'british', 
+      'yemen', 
+      'syria', 
+      'lebanon', 
+      'jordan', 
+      'palestine', 
+      'iraq', 
+      'morocco', 
+      'algeria', 
+      'tunisia', 
+      'libya', 
+      'sudan', 
+      'somalia', 
+      'djibouti', 
+      'comoros'
+    ],
+    trim: true
   },
   password: {type: String, required: true, select: false},
   role: {

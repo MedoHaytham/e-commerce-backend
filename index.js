@@ -8,6 +8,7 @@ import productsRouter from "./routes/productsRoutes.js";
 import authRouter from "./routes/authRoutes.js";
 import { httpStatusText } from "./utils/httpStatusText.js";
 import cookieParser from "cookie-parser";
+import ordersRouter from "./routes/orderRoutes.js";
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/products', productsRouter);
+app.use('/api/orders', ordersRouter);
 
 // global middleware for not found routes
 app.all(/(.*)/,(req, res, next) => {

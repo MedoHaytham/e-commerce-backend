@@ -4,7 +4,7 @@ import {
   loginUser, 
   refresh,
   logout
-} from "../controllers/authConrller.js";
+} from "../controllers/authController.js";
 import { registerSchema } from "../schemas/registerSchema.js";
 import { loginSchema } from "../schemas/loginSchema.js";
 import validate from "../validators/validate.js";

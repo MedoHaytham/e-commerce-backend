@@ -26,6 +26,11 @@ export const addressSchema = z.object({
     .trim()
     .min(1, "city is required"),
 
+  country: z
+    .string()
+    .trim()
+    .default("egypt"),
+
   phone: z
     .string()
     .trim()
