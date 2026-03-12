@@ -79,6 +79,28 @@ const shippingAddressSchema = new mongoose.Schema({
   country: {
     type: String,
     required: true,
+    enum: [
+      'egypt', 
+      'saudi arabia', 
+      'uae', 
+      'qatar', 
+      'american', 
+      'british', 
+      'yemen', 
+      'syria', 
+      'lebanon', 
+      'jordan', 
+      'palestine', 
+      'iraq', 
+      'morocco', 
+      'algeria', 
+      'tunisia', 
+      'libya', 
+      'sudan', 
+      'somalia', 
+      'djibouti', 
+      'comoros'
+    ],
     default: "egypt"
   }
 }, { _id: false });
