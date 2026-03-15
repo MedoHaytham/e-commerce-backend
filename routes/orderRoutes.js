@@ -9,16 +9,18 @@ import verifyToken from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
+router.use(verifyToken);
+
 router.route("/checkout")
-  .post(verifyToken, checkoutOrder);
+  .post(checkoutOrder);
 
 router.route("/")
-  .get(verifyToken, getMyOrders);
+  .get(getMyOrders);
 
 router.route("/:orderId")
-  .get(verifyToken, getOrderById);
+  .get(getOrderById);
 
 router.route("/all")
-  .get(verifyToken, getAllOrders);
+  .get(getAllOrders);
 
 export default router;
