@@ -352,6 +352,9 @@ const addAddress = asyncWrapper(
       return next(error);
     }
     user.addresses.push(req.body);
+    if(user.addresses.length === 1) {
+      user.addresses[0].isDefault = true;
+    }
     await user.save();
     const updatedUser = await User.findById(userId).lean();
     return res.json({status: httpStatusText.SUCCESS, data: {addresses: updatedUser.addresses}});
