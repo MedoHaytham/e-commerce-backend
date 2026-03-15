@@ -6,6 +6,8 @@ import {
   getAllOrders
 } from "../controllers/orderController.js";
 import verifyToken from "../middleware/verifyToken.js";
+import allowedTo from "../middleware/allowedTo.js";
+import { USER_ROLES } from "../utils/usersRoles.js";
 
 const router = express.Router();
 
@@ -21,6 +23,6 @@ router.route("/:orderId")
   .get(getOrderById);
 
 router.route("/all")
-  .get(getAllOrders);
+  .get(allowedTo(USER_ROLES.MANAGER, USER_ROLES.ADMIN), getAllOrders);
 
 export default router;
