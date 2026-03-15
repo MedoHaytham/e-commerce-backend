@@ -4,6 +4,43 @@ import { asyncWrapper } from "../middleware/asyncWrapper.js";
 import AppError from "../utils/appError.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
 
+const getMyOrders = asyncWrapper(async (req, res, next) => {
+  const userId = req.currentUser.id;
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 10;
+  const skip = (page - 1) * limit;
+  const orders = await Order.find({ user: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit);
+  return res.status(200).json({ status: httpStatusText.SUCCESS, data: { orders } });
+});
+
+const getOrderById = asyncWrapper(async (req, res, next) => {
+  const orderId = req.params.orderId;
+  const userId = req.currentUser.id;
+
+  const order = await Order.findOne({ _id: orderId, user: userId }).populate("items.product", "title imageCover price");
+
+  if (!order) {
+    const error = new AppError();
+    error.create("Order not found", 404, httpStatusText.FAIL);
+    return next(error);
+  }
+
+  return res.status(200).json({ status: httpStatusText.SUCCESS, data: { order } });
+});
+
+const getAllOrders = asyncWrapper(async (req, res) => {
+
+  const orders = await Order.find()
+    .populate("user", "firstName lastName email")
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({
+    status: httpStatusText.SUCCESS,
+    results: orders.length,
+    data: { orders }
+  });
+});
+
 const createMerchantOrderId = () => {
   return `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 };
@@ -104,42 +141,28 @@ const createOrder = asyncWrapper(async (req, res, next) => {
   });
 });
 
-const getMyOrders = asyncWrapper(async (req, res, next) => {
-  const userId = req.currentUser.id;
-  const page = req.query.page || 1;
-  const limit = req.query.limit || 10;
-  const skip = (page - 1) * limit;
-  const orders = await Order.find({ user: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit);
-  return res.status(200).json({ status: httpStatusText.SUCCESS, data: { orders } });
-});
-
-const getOrderById = asyncWrapper(async (req, res, next) => {
+const cancelOrder = asyncWrapper(async (req, res, next) => {
   const orderId = req.params.orderId;
   const userId = req.currentUser.id;
 
-  const order = await Order.findOne({ _id: orderId, user: userId }).populate("items.product", "title imageCover price");
+  const order = await Order.findOne({ _id: orderId, user: userId });
 
   if (!order) {
     const error = new AppError();
-    error.create("Order not found", 404, httpStatusText.FAIL);
+    error.create('Order not found', 404, httpStatusText.FAIL);
     return next(error);
   }
+
+  if (order.orderStatus !== 'pending') {
+    const error = new AppError();
+    error.create('Order cannot be cancelled', 400, httpStatusText.FAIL);
+    return next(error);
+  }
+
+  order.orderStatus = 'cancelled';
+  await order.save();
 
   return res.status(200).json({ status: httpStatusText.SUCCESS, data: { order } });
 });
 
-const getAllOrders = asyncWrapper(async (req, res) => {
-
-  const orders = await Order.find()
-    .populate("user", "firstName lastName email")
-    .sort({ createdAt: -1 });
-
-  res.status(200).json({
-    status: httpStatusText.SUCCESS,
-    results: orders.length,
-    data: { orders }
-  });
-});
-
-
-export { createOrder, getMyOrders, getOrderById, getAllOrders };
+export { createOrder, getMyOrders, getOrderById, getAllOrders, cancelOrder };

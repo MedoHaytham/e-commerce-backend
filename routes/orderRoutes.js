@@ -3,7 +3,8 @@ import {
   createOrder,
   getMyOrders,
   getOrderById,
-  getAllOrders
+  getAllOrders,
+  cancelOrder
 } from "../controllers/orderController.js";
 import verifyToken from "../middleware/verifyToken.js";
 import allowedTo from "../middleware/allowedTo.js";
@@ -20,7 +21,8 @@ router.route("/")
   .get(getMyOrders);
 
 router.route("/:orderId")
-  .get(getOrderById);
+  .get(getOrderById)
+  .patch(cancelOrder);
 
 router.route("/all")
   .get(allowedTo(USER_ROLES.MANAGER, USER_ROLES.ADMIN), getAllOrders);
