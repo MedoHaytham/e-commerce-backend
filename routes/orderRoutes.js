@@ -1,6 +1,6 @@
 import express from "express";
 import { 
-  checkoutOrder,
+  createOrder,
   getMyOrders,
   getOrderById,
   getAllOrders
@@ -13,8 +13,8 @@ const router = express.Router();
 
 router.use(verifyToken);
 
-router.route("/checkout")
-  .post(checkoutOrder);
+router.route("/create")
+  .post(createOrder);
 
 router.route("/")
   .get(getMyOrders);

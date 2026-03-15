@@ -8,7 +8,7 @@ const createMerchantOrderId = () => {
   return `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 };
 
-const checkoutOrder = asyncWrapper(async (req, res, next) => {
+const createOrder = asyncWrapper(async (req, res, next) => {
   const userId = req.currentUser.id;
   const { addressId, notes } = req.body;
 
@@ -142,4 +142,4 @@ const getAllOrders = asyncWrapper(async (req, res) => {
 });
 
 
-export { checkoutOrder, getMyOrders, getOrderById, getAllOrders };
+export { createOrder, getMyOrders, getOrderById, getAllOrders };
