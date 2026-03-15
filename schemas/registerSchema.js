@@ -35,7 +35,7 @@ export const registerSchema = z.object({
     .string()
     .trim()
     .min(1, 'country is required')
-    .regex(/^(egypt|saudi arabia|emirates|qatar|american|british|yemen|syria|lebanon|jordan|palestine|iraq|morocco|algeria|tunisia|libya|sudan|somalia|djibouti|comoros)$/, 'country must be a valid country'),
+    .regex(/^(egypt|saudi arabia|uae|qatar|american|british|yemen|syria|lebanon|jordan|palestine|iraq|morocco|algeria|tunisia|libya|sudan|somalia|djibouti|comoros)$/, 'country must be a valid country'),
 
   email: z
     .string()

@@ -14,21 +14,21 @@ const checkoutOrder = asyncWrapper(async (req, res, next) => {
 
   if (!addressId) {
     const error = new AppError();
-    error.create("Address id is required", 400, httpStatusText.FAIL);
+    error.create('Address id is required', 400, httpStatusText.FAIL);
     return next(error);
   }
 
-  const user = await User.findById(userId).populate("inCartProducts.product");
+  const user = await User.findById(userId).populate('inCartProducts.product');
 
   if (!user) {
     const error = new AppError();
-    error.create("User not found", 404, httpStatusText.FAIL);
+    error.create('User not found', 404, httpStatusText.FAIL);
     return next(error);
   }
 
   if (!user.inCartProducts || user.inCartProducts.length === 0) {
     const error = new AppError();
-    error.create("Cart is empty", 400, httpStatusText.FAIL);
+    error.create('Cart is empty', 400, httpStatusText.FAIL);
     return next(error);
   }
 
@@ -36,7 +36,7 @@ const checkoutOrder = asyncWrapper(async (req, res, next) => {
 
   if (invalidCartItem) {
     const error = new AppError();
-    error.create("Some cart products no longer exist", 400, httpStatusText.FAIL);
+    error.create('Some cart products no longer exist', 400, httpStatusText.FAIL);
     return next(error);
   }
 
@@ -44,7 +44,7 @@ const checkoutOrder = asyncWrapper(async (req, res, next) => {
 
   if (!selectedAddress) {
     const error = new AppError();
-    error.create("Address not found", 404, httpStatusText.FAIL);
+    error.create('Address not found', 404, httpStatusText.FAIL);
     return next(error);
   }
 
@@ -54,7 +54,7 @@ const checkoutOrder = asyncWrapper(async (req, res, next) => {
     return {
       product: product._id,
       title: product.title,
-      image: product.images?.[0] || "",
+      image: product.images?.[0] || '',
       price: product.price,
       quantity: item.quantity,
       itemSubtotal: Number((product.price * item.quantity).toFixed(2))
@@ -81,14 +81,14 @@ const checkoutOrder = asyncWrapper(async (req, res, next) => {
       city: selectedAddress.city,
       country: selectedAddress.country
     },
-    notes: notes || "",
+    notes: notes || '',
     subtotal,
     discount,
     deliveryFee,
     totalPrice,
-    paymentMethod: "paymob",
-    paymentStatus: "pending",
-    orderStatus: "pending",
+    paymentMethod: 'paymob',
+    paymentStatus: 'pending',
+    orderStatus: 'pending',
     merchantOrderId: createMerchantOrderId()
   });
 
@@ -139,7 +139,6 @@ const getAllOrders = asyncWrapper(async (req, res) => {
     results: orders.length,
     data: { orders }
   });
-
 });
 
 
