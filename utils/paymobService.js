@@ -1,42 +1,63 @@
-import axios from "axios";
-import dotenv from "dotenv";
-dotenv.config();
+// utils/paymobService.js
 
-const PAYMOB_API_KEY      = process.env.PAYMOB_API_KEY;
+import axios from "axios";
+
+const PAYMOB_API_KEY       = process.env.PAYMOB_API_KEY;
 const PAYMOB_INTEGRATION_ID = Number(process.env.PAYMOB_INTEGRATION_ID);
 
-// Step 1: Authenticate and get auth_token
+// Helper — logs Paymob errors clearly
+const paymobRequest = async (url, body, stepName) => {
+  try {
+    const res = await axios.post(url, body);
+    return res.data;
+  } catch (err) {
+    const details = err.response?.data || err.message;
+    console.error(`[Paymob] FAILED at step: ${stepName}`);
+    console.error(`[Paymob] Status: ${err.response?.status}`);
+    console.error(`[Paymob] Details:`, JSON.stringify(details, null, 2));
+    throw new Error(`Paymob ${stepName} failed: ${JSON.stringify(details)}`);
+  }
+};
+
+// Step 1: Authenticate
 const getAuthToken = async () => {
-  const res = await axios.post("https://accept.paymob.com/api/auth/tokens", {
-    api_key: PAYMOB_API_KEY,
-  });
-  return res.data.token;
+  if (!PAYMOB_API_KEY) throw new Error("PAYMOB_API_KEY is missing from env");
+
+  const data = await paymobRequest(
+    "https://accept.paymob.com/api/auth/tokens",
+    { api_key: PAYMOB_API_KEY },
+    "getAuthToken"
+  );
+  return data.token;
 };
 
 // Step 2: Register order on Paymob
 const registerPaymobOrder = async (authToken, order) => {
-  const res = await axios.post(
+  if (!PAYMOB_INTEGRATION_ID) throw new Error("PAYMOB_INTEGRATION_ID is missing from env");
+
+  const data = await paymobRequest(
     "https://accept.paymob.com/api/ecommerce/orders",
     {
-      auth_token:     authToken,
-      delivery_needed: false,
-      amount_cents:   Math.round(order.totalPrice * 100), // convert to cents
-      currency:       "EGP",
+      auth_token:        authToken,
+      delivery_needed:   false,
+      amount_cents:      Math.round(order.totalPrice * 100),
+      currency:          "EGP",
       merchant_order_id: order.merchantOrderId,
       items: order.items.map((item) => ({
-        name:        item.title,
+        name:         item.title,
         amount_cents: Math.round(item.price * 100),
-        description: item.title,
-        quantity:    item.quantity,
+        description:  item.title,
+        quantity:     item.quantity,
       })),
-    }
+    },
+    "registerPaymobOrder"
   );
-  return res.data.id; // paymobOrderId
+  return data.id; // paymobOrderId
 };
 
-// Step 3: Generate payment key
+// Step 3: Get payment key
 const getPaymentKey = async (authToken, paymobOrderId, order) => {
-  const res = await axios.post(
+  const data = await paymobRequest(
     "https://accept.paymob.com/api/acceptance/payment_keys",
     {
       auth_token:     authToken,
@@ -46,23 +67,24 @@ const getPaymentKey = async (authToken, paymobOrderId, order) => {
       currency:       "EGP",
       integration_id: PAYMOB_INTEGRATION_ID,
       billing_data: {
-        first_name:       order.shippingAddress.firstName,
-        last_name:        order.shippingAddress.lastName,
-        email:            order.shippingAddress.email,
-        phone_number:     order.shippingAddress.phone,
-        apartment:        "NA",
-        floor:            "NA",
-        street:           order.shippingAddress.address,
-        building:         "NA",
-        shipping_method:  "NA",
-        postal_code:      "NA",
-        city:             order.shippingAddress.city,
-        country:          order.shippingAddress.country,
-        state:            "NA",
+        first_name:      order.shippingAddress.firstName,
+        last_name:       order.shippingAddress.lastName,
+        email:           order.shippingAddress.email,
+        phone_number:    order.shippingAddress.phone,
+        apartment:       "NA",
+        floor:           "NA",
+        street:          order.shippingAddress.address,
+        building:        "NA",
+        shipping_method: "NA",
+        postal_code:     "NA",
+        city:            order.shippingAddress.city,
+        country:         order.shippingAddress.country,
+        state:           "NA",
       },
-    }
+    },
+    "getPaymentKey"
   );
-  return res.data.token; // payment_key
+  return data.token; // payment_key
 };
 
 export { getAuthToken, registerPaymobOrder, getPaymentKey };
