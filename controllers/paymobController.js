@@ -1,19 +1,19 @@
 // controllers/paymobController.js
-
 import Order from "../models/order.js";
 import { asyncWrapper } from "../middleware/asyncWrapper.js";
 import AppError from "../utils/appError.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
-import { getAuthToken, registerPaymobOrder, getPaymentKey } from "../utils/paymobService.js";
+import { createPaymobintention } from "../utils/paymobService.js";
 import crypto from "crypto";
 
+const PAYMOB_PUBLIC_KEY = process.env.PAYMOB_PUBLIC_KEY;
+
+// POST /api/paymob/pay
 const initiatePayment = asyncWrapper(async (req, res, next) => {
   const { orderId } = req.body;
   const userId = req.currentUser.id;
 
-  // Log incoming request
-  console.log("[Pay] orderId received:", orderId);
-  console.log("[Pay] userId:", userId);
+  console.log("[Pay] orderId:", orderId, "| userId:", userId);
 
   if (!orderId) {
     const error = new AppError();
@@ -24,7 +24,6 @@ const initiatePayment = asyncWrapper(async (req, res, next) => {
   const order = await Order.findOne({ _id: orderId, user: userId });
 
   if (!order) {
-    console.log("[Pay] Order not found for:", orderId);
     const error = new AppError();
     error.create("Order not found", 404, httpStatusText.FAIL);
     return next(error);
@@ -36,36 +35,22 @@ const initiatePayment = asyncWrapper(async (req, res, next) => {
     return next(error);
   }
 
-  console.log("[Pay] Starting Paymob flow for order:", order.merchantOrderId);
+  const clientSecret = await createPaymobintention(order);
+  console.log("[Pay] Got clientSecret");
 
-  // Paymob 3-step flow
-  const authToken     = await getAuthToken();
-  console.log("[Pay] Got auth token");
-
-  const paymobOrderId = await registerPaymobOrder(authToken, order);
-  console.log("[Pay] Registered Paymob order:", paymobOrderId);
-
-  const paymentKey    = await getPaymentKey(authToken, paymobOrderId, order);
-  console.log("[Pay] Got payment key");
-
-  // Save paymobOrderId
-  order.paymobOrderId = String(paymobOrderId);
-  await order.save();
-
-  // Hosted payment page URL
-  const redirectUrl = `https://accept.paymob.com/api/acceptance/iframes/${paymobOrderId}?payment_token=${paymentKey}`;
-
+  const redirectUrl = `https://accept.paymob.com/unifiedcheckout/?publicKey=${PAYMOB_PUBLIC_KEY}&clientSecret=${clientSecret}`;
   console.log("[Pay] Redirect URL ready");
 
   return res.status(200).json({
     status: httpStatusText.SUCCESS,
-    data: { paymentKey, redirectUrl, paymobOrderId },
+    data: { redirectUrl },
   });
 });
 
-const handleWebhook = asyncWrapper(async (req, res, next) => {
-  const hmacSecret    = process.env.PAYMOB_HMAC_SECRET;
-  const receivedHmac  = req.query.hmac;
+// POST /api/paymob/webhook
+const handleWebhook = asyncWrapper(async (req, res) => {
+  const hmacSecret   = process.env.PAYMOB_HMAC_SECRET;
+  const receivedHmac = req.query.hmac;
 
   const obj = req.body.obj;
 
@@ -99,12 +84,12 @@ const handleWebhook = asyncWrapper(async (req, res, next) => {
     .digest("hex");
 
   if (calculatedHmac !== receivedHmac) {
-    console.error("[Webhook] Invalid HMAC — possible spoofing attempt");
+    console.error("[Webhook] Invalid HMAC");
     return res.status(401).json({ message: "Invalid HMAC" });
   }
 
-  const { success, order: paymobOrder, id: transactionId } = obj;
-  const merchantOrderId = paymobOrder?.merchant_order_id;
+  const { success, id: transactionId } = obj;
+  const merchantOrderId = obj.order?.merchant_order_id || obj.metadata?.merchant_order_id;
 
   console.log("[Webhook] merchantOrderId:", merchantOrderId, "| success:", success);
 
@@ -120,10 +105,10 @@ const handleWebhook = asyncWrapper(async (req, res, next) => {
     order.paidAt              = new Date();
     order.orderStatus         = "confirmed";
     order.paymobTransactionId = String(transactionId);
-    console.log("[Webhook] Payment confirmed for order:", merchantOrderId);
+    console.log("[Webhook] Payment confirmed:", merchantOrderId);
   } else {
     order.paymentStatus = "failed";
-    console.log("[Webhook] Payment failed for order:", merchantOrderId);
+    console.log("[Webhook] Payment failed:", merchantOrderId);
   }
 
   await order.save();
