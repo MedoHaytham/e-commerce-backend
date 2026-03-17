@@ -129,6 +129,10 @@ const createOrder = asyncWrapper(async (req, res, next) => {
     merchantOrderId: createMerchantOrderId()
   });
 
+  // Clear cart after successful order creation
+  user.inCartProducts = [];
+  await user.save();
+
   // return res.status(201).json({ status: httpStatusText.SUCCESS, data: { order } });
   return res.status(201).json({ status: httpStatusText.SUCCESS,
     data: {
