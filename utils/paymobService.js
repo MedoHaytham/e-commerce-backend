@@ -16,9 +16,9 @@ const paymobRequest = async (url, body, stepName) => {
   }
 };
 
-// Step 1: Auth token
+// Step 1: Get auth token
 const getAuthToken = async () => {
-  if (!PAYMOB_API_KEY) throw new Error("PAYMOB_API_KEY is missing");
+  if (!PAYMOB_API_KEY) throw new Error("PAYMOB_API_KEY is missing from env");
   const data = await paymobRequest(
     "https://accept.paymob.com/api/auth/tokens",
     { api_key: PAYMOB_API_KEY },
@@ -27,7 +27,7 @@ const getAuthToken = async () => {
   return data.token;
 };
 
-// Step 2: Register order
+// Step 2: Register order on Paymob
 const registerPaymobOrder = async (authToken, order) => {
   const data = await paymobRequest(
     "https://accept.paymob.com/api/ecommerce/orders",
@@ -49,9 +49,9 @@ const registerPaymobOrder = async (authToken, order) => {
   return data.id;
 };
 
-// Step 3: Payment key
+// Step 3: Get payment key
 const getPaymentKey = async (authToken, paymobOrderId, order) => {
-  if (!PAYMOB_INTEGRATION_ID) throw new Error("PAYMOB_INTEGRATION_ID is missing");
+  if (!PAYMOB_INTEGRATION_ID) throw new Error("PAYMOB_INTEGRATION_ID is missing from env");
   const data = await paymobRequest(
     "https://accept.paymob.com/api/acceptance/payment_keys",
     {
