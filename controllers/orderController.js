@@ -100,7 +100,7 @@ const createOrder = asyncWrapper(async (req, res, next) => {
 
   const subtotal = Number(items.reduce((acc, item) => acc + item.itemSubtotal, 0).toFixed(2));
   
-  const deliveryFee = 30;
+  const deliveryFee = 0;
   const discount = 0;
   const totalPrice = Number((subtotal + deliveryFee - discount).toFixed(2));
 
