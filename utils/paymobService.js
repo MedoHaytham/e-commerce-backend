@@ -7,7 +7,12 @@ const PAYMOB_IFRAME_ID      = process.env.PAYMOB_IFRAME_ID;
 
 const paymobRequest = async (url, body, stepName) => {
   try {
+    console.log(`[Paymob] Requesting ${stepName}...`);
+    console.log(`[Paymob] URL: ${url}`);
+    console.log(`[Paymob] Body:`, JSON.stringify(body, null, 2));
+
     const res = await axios.post(url, body);
+    console.log(`[Paymob] ${stepName} Response:`, res.data);
     return res.data;
   } catch (err) {
     const details = err.response?.data || err.message;
@@ -19,16 +24,26 @@ const paymobRequest = async (url, body, stepName) => {
 // Step 1: Get auth token
 const getAuthToken = async () => {
   if (!PAYMOB_API_KEY) throw new Error("PAYMOB_API_KEY is missing from env");
+  console.log("[Paymob] Using API Key:", PAYMOB_API_KEY);
+
   const data = await paymobRequest(
     "https://accept.paymob.com/api/auth/tokens",
     { api_key: PAYMOB_API_KEY },
     "getAuthToken"
   );
+  
+  if (!data?.token) {
+    throw new Error("Paymob getAuthToken failed: No token returned");
+  }
+
+  console.log("[Paymob] Auth token obtained successfully");
   return data.token;
 };
 
 // Step 2: Register order on Paymob
 const registerPaymobOrder = async (authToken, order) => {
+  console.log("[Paymob] Registering order with authToken:", authToken);
+  
   const data = await paymobRequest(
     "https://accept.paymob.com/api/ecommerce/orders",
     {
@@ -46,12 +61,21 @@ const registerPaymobOrder = async (authToken, order) => {
     },
     "registerPaymobOrder"
   );
+
+  if (!data?.id) {
+    throw new Error("Paymob registerPaymobOrder failed: No order ID returned");
+  }
+
+  console.log("[Paymob] Order registered successfully:", data.id);
   return data.id;
 };
 
 // Step 3: Get payment key
 const getPaymentKey = async (authToken, paymobOrderId, order) => {
   if (!PAYMOB_INTEGRATION_ID) throw new Error("PAYMOB_INTEGRATION_ID is missing from env");
+
+  console.log("[Paymob] Getting payment key for order:", paymobOrderId);
+
   const data = await paymobRequest(
     "https://accept.paymob.com/api/acceptance/payment_keys",
     {
@@ -79,6 +103,12 @@ const getPaymentKey = async (authToken, paymobOrderId, order) => {
     },
     "getPaymentKey"
   );
+
+  if (!data?.token) {
+    throw new Error("Paymob getPaymentKey failed: No token returned");
+  }
+
+  console.log("[Paymob] Payment key obtained successfully");
   return data.token;
 };
 
