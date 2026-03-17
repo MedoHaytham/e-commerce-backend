@@ -39,17 +39,15 @@ const initiatePayment = asyncWrapper(async (req, res, next) => {
     return next(error);
   }
 
-  // Paymob v1 — 3 steps
   const authToken     = await getAuthToken();
   const paymobOrderId = await registerPaymobOrder(authToken, order);
   const paymentKey    = await getPaymentKey(authToken, paymobOrderId, order);
 
-  // Save paymobOrderId
   order.paymobOrderId = String(paymobOrderId);
   await order.save();
 
   const redirectUrl = `https://accept.paymob.com/api/acceptance/iframes/${PAYMOB_IFRAME_ID}?payment_token=${paymentKey}`;
-  console.log("[Pay] Ready — redirecting to Paymob iframe:", redirectUrl);
+  console.log("[Pay] Ready — redirectUrl generated");
 
   return res.status(200).json({
     status: httpStatusText.SUCCESS,
@@ -57,11 +55,42 @@ const initiatePayment = asyncWrapper(async (req, res, next) => {
   });
 });
 
-// POST /api/paymob/webhook
+// Shared handler for both POST (webhook) and GET (redirect)
 const handleWebhook = asyncWrapper(async (req, res) => {
-  const hmacSecret   = process.env.PAYMOB_HMAC_SECRET;
+  const hmacSecret = process.env.PAYMOB_HMAC_SECRET;
+
+  // ── GET redirect from Paymob after payment ──────────────
+  if (req.method === "GET") {
+    const { success, merchant_order_id, hmac: receivedHmac } = req.query;
+
+    console.log("[Redirect] merchant_order_id:", merchant_order_id, "| success:", success);
+
+    const order = await Order.findOne({ merchantOrderId: merchant_order_id });
+    if (!order) {
+      console.error("[Redirect] Order not found:", merchant_order_id);
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (success === "true" && order.paymentStatus !== "paid") {
+      order.paymentStatus = "paid";
+      order.isPaid        = true;
+      order.paidAt        = new Date();
+      order.orderStatus   = "confirmed";
+      await order.save();
+      console.log("[Redirect] Marked as paid:", merchant_order_id);
+    }
+
+    return res.status(200).json({ status: "received" });
+  }
+
+  // ── POST webhook from Paymob ─────────────────────────────
   const receivedHmac = req.query.hmac;
   const obj          = req.body.obj;
+
+  if (!obj) {
+    console.error("[Webhook] No obj in body");
+    return res.status(400).json({ message: "Invalid webhook payload" });
+  }
 
   // HMAC verification
   const hmacString = [
@@ -113,10 +142,10 @@ const handleWebhook = asyncWrapper(async (req, res) => {
     order.paidAt              = new Date();
     order.orderStatus         = "confirmed";
     order.paymobTransactionId = String(transactionId);
-    console.log("[Webhook] Payment confirmed:", merchantOrderId);
+    console.log("[Webhook] Confirmed:", merchantOrderId);
   } else {
     order.paymentStatus = "failed";
-    console.log("[Webhook] Payment failed:", merchantOrderId);
+    console.log("[Webhook] Failed:", merchantOrderId);
   }
 
   await order.save();
