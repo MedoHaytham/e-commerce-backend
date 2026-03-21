@@ -11,8 +11,6 @@ const initiatePayment = asyncWrapper(async (req, res, next) => {
   const { orderId } = req.body;
   const userId = req.currentUser.id;
 
-  console.log("[Pay] orderId:", orderId, "| userId:", userId);
-
   if (!orderId) {
     const error = new AppError();
     error.create("orderId is required", 400, httpStatusText.FAIL);
@@ -39,15 +37,14 @@ const initiatePayment = asyncWrapper(async (req, res, next) => {
     return next(error);
   }
 
-  const authToken     = await getAuthToken();
+  const authToken = await getAuthToken();
   const paymobOrderId = await registerPaymobOrder(authToken, order);
-  const paymentKey    = await getPaymentKey(authToken, paymobOrderId, order);
+  const paymentKey = await getPaymentKey(authToken, paymobOrderId, order);
 
   order.paymobOrderId = String(paymobOrderId);
   await order.save();
 
   const redirectUrl = `https://accept.paymob.com/api/acceptance/iframes/${PAYMOB_IFRAME_ID}?payment_token=${paymentKey}`;
-  console.log("[Pay] Ready — redirectUrl generated");
 
   return res.status(200).json({
     status: httpStatusText.SUCCESS,
@@ -63,21 +60,17 @@ const handleWebhook = asyncWrapper(async (req, res) => {
   if (req.method === "GET") {
     const { success, merchant_order_id, hmac: receivedHmac } = req.query;
 
-    console.log("[Redirect] merchant_order_id:", merchant_order_id, "| success:", success);
-
     const order = await Order.findOne({ merchantOrderId: merchant_order_id });
     if (!order) {
-      console.error("[Redirect] Order not found:", merchant_order_id);
       return res.status(404).json({ message: "Order not found" });
     }
 
     if (success === "true" && order.paymentStatus !== "paid") {
       order.paymentStatus = "paid";
-      order.isPaid        = true;
-      order.paidAt        = new Date();
-      order.orderStatus   = "confirmed";
+      order.isPaid = true;
+      order.paidAt = new Date();
+      order.orderStatus = "confirmed";
       await order.save();
-      console.log("[Redirect] Marked as paid:", merchant_order_id);
     }
 
     return res.status(200).json({ status: "received" });
@@ -85,10 +78,9 @@ const handleWebhook = asyncWrapper(async (req, res) => {
 
   // ── POST webhook from Paymob ─────────────────────────────
   const receivedHmac = req.query.hmac;
-  const obj          = req.body.obj;
+  const obj = req.body.obj;
 
   if (!obj) {
-    console.error("[Webhook] No obj in body");
     return res.status(400).json({ message: "Invalid webhook payload" });
   }
 
@@ -128,24 +120,20 @@ const handleWebhook = asyncWrapper(async (req, res) => {
 
   const { success, id: transactionId } = obj;
   const merchantOrderId = obj.order?.merchant_order_id;
-  console.log("[Webhook] merchantOrderId:", merchantOrderId, "| success:", success);
 
   const order = await Order.findOne({ merchantOrderId });
   if (!order) {
-    console.error("[Webhook] Order not found:", merchantOrderId);
     return res.status(404).json({ message: "Order not found" });
   }
 
   if (success === true) {
-    order.paymentStatus       = "paid";
-    order.isPaid              = true;
-    order.paidAt              = new Date();
-    order.orderStatus         = "confirmed";
+    order.paymentStatus = "paid";
+    order.isPaid = true;
+    order.paidAt = new Date();
+    order.orderStatus = "confirmed";
     order.paymobTransactionId = String(transactionId);
-    console.log("[Webhook] Confirmed:", merchantOrderId);
   } else {
     order.paymentStatus = "failed";
-    console.log("[Webhook] Failed:", merchantOrderId);
   }
 
   await order.save();

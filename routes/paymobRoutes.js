@@ -4,8 +4,8 @@ import verifyToken from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-router.post("/pay",     verifyToken, initiatePayment);
-router.post("/webhook", handleWebhook); // Paymob POST callback
-router.get("/webhook",  handleWebhook); // Paymob GET redirect
+router.post("/pay", verifyToken, initiatePayment);
+router.post("/webhook", handleWebhook);
+router.get("/webhook", handleWebhook);
 
 export default router;

@@ -18,7 +18,8 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  "https://medohaytham.github.io"
+  "https://medohaytham.github.io",
+  "https://admin-dashboard-black-nine-79.vercel.app"
 ];
 
 const url = process.env.MONGO_URL;

@@ -4,9 +4,7 @@ import { httpStatusText } from "../utils/httpStatusText.js";
 import bcrypt from "bcryptjs";
 import AppError from "../utils/appError.js";
 import Product from "../models/products.js";
-import dotenv from "dotenv";
 
-dotenv.config();
 
 const getAllUsers = asyncWrapper(
   async (req, res, next) => {
