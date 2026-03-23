@@ -1,5 +1,13 @@
 import express from "express";
-import { getAllProducts, getProductById, addProduct, deleteProduct, getProductsByCategory, searchProducts } from "../controllers/productsController.js";
+import { 
+  getAllProducts, 
+  getProductById, 
+  addProduct, 
+  deleteProduct, 
+  getProductsByCategory, 
+  searchProducts,
+  updateProduct
+} from "../controllers/productsController.js";
 import { productsSchema } from "../schemas/productsSchema.js";
 import verifyToken from "../middleware/verifyToken.js";
 import { USER_ROLES } from "../utils/usersRoles.js";
@@ -20,6 +28,7 @@ router.route("/category/:slug")
 
 router.route("/:productId")
   .get(getProductById)
+  .patch(verifyToken, allowedTo(USER_ROLES.ADMIN, USER_ROLES.MANAGER), updateProduct)
   .delete(verifyToken, allowedTo(USER_ROLES.ADMIN, USER_ROLES.MANAGER), deleteProduct);
 
 
