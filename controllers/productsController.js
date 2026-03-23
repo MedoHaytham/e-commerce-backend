@@ -164,5 +164,5 @@ export {
   deleteProduct, 
   getProductsByCategory, 
   searchProducts,
-  updateProduct,
+  updateProduct
 };
