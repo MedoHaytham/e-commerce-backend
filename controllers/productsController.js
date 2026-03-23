@@ -101,7 +101,7 @@ const addProduct = asyncWrapper(
     await product.save();
     const populated = await Product.findById(product._id, {__v: 0}).populate("category");
     return res.json({status: httpStatusText.SUCCESS, data: {
-      id: product._id,
+      _id: product._id,
       title: product.title,
       description: product.description,
       category: populated.category.slug,
