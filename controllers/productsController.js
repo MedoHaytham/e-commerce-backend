@@ -99,11 +99,12 @@ const addProduct = asyncWrapper(
       images
     });
     await product.save();
+    const populated = await Product.findById(product._id, {__v: 0}).populate("category");
     return res.json({status: httpStatusText.SUCCESS, data: {
       _id: product._id,
       title: product.title,
       description: product.description,
-      category: product.category,
+      category: populated.category,
       price: product.price,
       stock: product.stock,
       brand: product.brand,
