@@ -80,7 +80,7 @@ const searchProducts = asyncWrapper(
 
 const addProduct = asyncWrapper(
   async (req, res, next) => {
-    const { title, description, category, price, rating, stock, brand, availabilityStatus, images } = req.body;
+    const { title, description, category, price, stock, brand, images } = req.body;
 
     const oldCategory = await Category.exists({_id: category});
     if (!oldCategory) {
@@ -94,10 +94,8 @@ const addProduct = asyncWrapper(
       description,
       category,
       price,
-      rating,
       stock,
       brand,
-      availabilityStatus,
       images
     });
     await product.save();
@@ -147,49 +145,6 @@ const updateProduct = asyncWrapper(
     return res.json({status: httpStatusText.SUCCESS, data: populated});
   }
 )
-
-
-// const updateProduct = asyncWrapper(
-//   async (req, res, next) => {
-//     const { title, description, category, price, rating, stock, brand, availabilityStatus, images } = req.body;
-
-//     const oldCategory = await Category.exists({_id: category});
-//     if (!oldCategory) {
-//       const error = new AppError();
-//       error.create('category not found', 404, httpStatusText.FAIL);
-//       return next(error);
-//     }
-
-//     const product = await Product.findByIdAndUpdate(req.params.productId, {
-//       title,
-//       description,
-//       category,
-//       price,
-//       rating,
-//       stock,
-//       brand,
-//       availabilityStatus,
-//       images
-//     }, {new: true, runValidators: true});
-//     if (!product) {
-//       const error = new AppError();
-//       error.create('product not found', 404, httpStatusText.FAIL);
-//       return next(error);
-//     }
-//     const populated = await Product.findById(product._id, {__v: 0}).populate("category");
-//     return res.json({status: httpStatusText.SUCCESS, data: {
-//       title: product.title,
-//       description: product.description,
-//       category: populated.category.slug,
-//       price: product.price,
-//       rating: product.rating,
-//       stock: product.stock,
-//       brand: product.brand,
-//       availabilityStatus: product.availabilityStatus,
-//       images: product.images
-//     }});
-//   }
-// );
 
 const deleteProduct = asyncWrapper(
   async (req, res, next) => {
