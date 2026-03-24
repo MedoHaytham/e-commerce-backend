@@ -30,9 +30,15 @@ const getOrderById = asyncWrapper(async (req, res, next) => {
 
 const getAllOrders = asyncWrapper(async (req, res) => {
 
+  const limit = req.query.limit || 10;
+  const page = req.query.page || 1;
+  const skip = (page - 1) * limit;
+
   const orders = await Order.find()
     .populate("user", "firstName lastName email")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
 
   res.status(200).json({
     status: httpStatusText.SUCCESS,
