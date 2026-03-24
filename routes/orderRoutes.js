@@ -16,6 +16,9 @@ router.use(verifyToken);
 
 router.route("/create")
   .post(createOrder);
+  
+router.route("/all")
+  .get(allowedTo(USER_ROLES.MANAGER, USER_ROLES.ADMIN), getAllOrders);
 
 router.route("/")
   .get(getMyOrders);
@@ -24,7 +27,5 @@ router.route("/:orderId")
   .get(getOrderById)
   .patch(cancelOrder);
 
-router.route("/all")
-  .get(allowedTo(USER_ROLES.MANAGER, USER_ROLES.ADMIN), getAllOrders);
 
 export default router;
