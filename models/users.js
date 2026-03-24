@@ -124,7 +124,7 @@ const userSchema = new mongoose.Schema({
   password: {type: String, required: true, select: false},
   role: {
     type: String, 
-    enum: [USER_ROLES.ADMIN, USER_ROLES.USER], 
+    enum: [USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROLES.MANAGER], 
     default: USER_ROLES.USER
   },
   favoriteProducts: [
