@@ -42,6 +42,7 @@ const addCategory = asyncWrapper(
     });
     await category.save();
     return res.json({status: httpStatusText.SUCCESS, data: {
+      _id: category._id,
       slug: category.slug,
       name: category.name,
     }});
